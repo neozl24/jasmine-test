@@ -21,15 +21,23 @@ $(function() {
             expect(allFeeds.length).not.toBe(0);
         });
 
+        // 将测试url和name不为空的方法提出来，以便复用
+        var expectValid = function(sth) {
+            expect(sth).toBeDefined();
+            expect(sth).not.toBeNull();
+            expect(sth).toBeTruthy();
+        };
 
         /* TODO:
          * 编写一个测试遍历 allFeeds 对象里面的所有的源来保证有链接字段而且链接不是空的。
          */
         it('have valid URLs for each feed', function() {
             allFeeds.forEach(function(feed) {
-                expect(feed.url).toBeDefined();
-                expect(feed.url).not.toBeNull();
-                expect(feed.url).toBeTruthy();
+                expectValid(feed.url);
+
+                // 检查 URL 格式是否正确
+                var regularExpressionUrl = /^((ht|f)tps?):\/\/([\w\-]+(\.[\w\-]+)*\/)*[\w\-]+(\.[\w\-]+)*\/?(\?([\w\-\.,@?^=%&:\/~\+#]*)+)?/; 
+                expect(feed.url).toMatch(regularExpressionUrl); 
             });
         });
 
@@ -39,9 +47,7 @@ $(function() {
          */
          it('have valid names for each feed', function() {
             allFeeds.forEach(function(feed) {
-                expect(feed.name).toBeDefined();
-                expect(feed.name).not.toBeNull();
-                expect(feed.name).toBeTruthy();
+                expectValid(feed.name);
             });
         });
     });
@@ -82,16 +88,13 @@ $(function() {
          * 和异步的 done() 函数。
          */
         beforeEach(function(done) {
-            loadFeed(0, function() {
-                done();
-            })
+            loadFeed(0, done)
         });
-        it('are not empty', function(done) {
+        it('are not empty', function() {
             var entries = $('.feed .entry');
             expect(entries).toBeDefined();
             expect(entries.length).toBeDefined();
             expect(entries.length).toBeGreaterThan(0);
-            done();
         });
     });
 
@@ -102,17 +105,24 @@ $(function() {
          * 记住，loadFeed() 函数是异步的。
          */
         var oldContent, newContent;
-        oldContent = $('.feed').html();
         beforeEach(function(done) {
             loadFeed(0, function() {
-                newContent = $('.feed').html();
+                oldContent = $('.feed').html();
                 done();
             });   
         });
-        it('will change the content accordingly', function(done) {
-            expect(oldContent).toBeDefined();
-            expect(oldContent).not.toBe(newContent);
-            done();
+        it('will change the content accordingly', function() {
+            // 先确保allFeeds至少有两个源
+            expect(allFeeds).toBeDefined();
+            expect(allFeeds.length).toBeDefined();
+            expect(allFeeds.length).toBeGreaterThan(1);
+
+            // 再载入新源，判断新旧内容是否相同
+            loadFeed(1, function() {
+                newContent = $('.feed').html();
+                expect(oldContent).toBeDefined();
+                expect(oldContent).not.toBe(newContent);
+            });
         });
     });
 
