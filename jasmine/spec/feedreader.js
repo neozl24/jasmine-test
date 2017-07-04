@@ -84,7 +84,7 @@ $(function() {
          * 写一个测试保证 loadFeed 函数被调用而且工作正常，即在 .feed 容器元素
          * 里面至少有一个 .entry 的元素。
          *
-         * 记住 loadFeed() 函数是异步的所以这个而是应该使用 Jasmine 的 beforeEach
+         * 记住 loadFeed() 函数是异步的所以这个测试应该使用 Jasmine 的 beforeEach
          * 和异步的 done() 函数。
          */
         beforeEach(function(done) {
@@ -104,14 +104,21 @@ $(function() {
          * 写一个测试保证当用 loadFeed 函数加载一个新源的时候内容会真的改变。
          * 记住，loadFeed() 函数是异步的。
          */
+
+        // 由于异步时间可能较长，需要将超时时间设置得更长一点，默认是5秒（5000）        
+        jasmine.DEFAULT_TIMEOUT_INTERVAL = 100000;
+
         var oldContent, newContent;
         beforeEach(function(done) {
             loadFeed(0, function() {
                 oldContent = $('.feed').html();
+                console.log('第一个源加载完毕');
                 done();
             });   
         });
-        it('will change the content accordingly', function() {
+
+        // it函数中也包含异步请求时，需要传入done函数监测异步操作的执行完毕，否则在异步expect执行之前，测试环境就以为测试结束了，现在会明白等着你给它发个信号才表示测试结束
+        it('will change the content accordingly', function(done) {
             // 先确保allFeeds至少有两个源
             expect(allFeeds).toBeDefined();
             expect(allFeeds.length).toBeDefined();
@@ -120,8 +127,10 @@ $(function() {
             // 再载入新源，判断新旧内容是否相同
             loadFeed(1, function() {
                 newContent = $('.feed').html();
+                console.log('第二个源加载完毕');
                 expect(oldContent).toBeDefined();
                 expect(oldContent).not.toBe(newContent);
+                done();
             });
         });
     });
